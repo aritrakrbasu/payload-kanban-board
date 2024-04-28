@@ -1,0 +1,46 @@
+{
+  "name": "payload-kanban",
+  "description": "A kanban board plugin for Payload CMS",
+  "version": "1.0",
+  "keywords": [
+    "payload",
+    "payload-plugin",
+    "payloadcms",
+    "kanban",
+    "board",
+    "plugin",
+    "react",
+    "workflow"
+  ],
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "repository": "https://github.com/aritrakrbasu/payload-kanban.git",
+  "author": "Aritra Kr. Basu <aritrabasu71@gmail.com>",
+  "license": "MIT",
+  "private": false,
+  "scripts": {
+    "copyfiles": "copyfiles -u 1 \"src/**/*.{html,css,scss,ttf,woff,woff2,eot,svg,jpg,png}\" dist/",
+    "build": "yarn copyfiles && yarn build:tsc",
+    "build:tsc": "tsc"
+  },
+  "peerDependencies": {
+    "i18next": "^22.5.0",
+    "payload": "^2.0.0",
+    "react": "^16.8.5 || ^17.0.0 || ^18.0.0",
+    "react-dom": "^16.8.5 || ^17.0.0 || ^18.0.0",
+    "react-i18next": "^11.18.0",
+    "react-router": "^5.0.0",
+    "react-router-dom": "^5.0.0"
+  },
+  "devDependencies": {
+    "@types/react-beautiful-dnd": "^13.1.4",
+    "@types/react-router-dom": "^5.3.3",
+    "copyfiles": "^2.4.1",
+    "payload": "^2.6.0",
+    "typescript": "^4.9.5"
+  },
+  "dependencies": {
+    "lexorank": "^1.0.5",
+    "react-beautiful-dnd": "^13.1.1"
+  }
+}
