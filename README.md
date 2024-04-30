@@ -30,7 +30,7 @@ const config = buildConfig({
     payloadKanbanBoard({
       'my-collection-slug': {
         statuses: [
-          {value: 'draft', label: 'Draft'},
+          {value: 'draft', label: 'Draft', dropValidation:({user,data})=>return true}, //<dropValidation key is optional>
           {value: 'in-progress', label: 'In Progress'},
           {value: 'ready-for-review', label: 'Ready for review'},
           {value: 'published', label: 'Published'},
@@ -38,11 +38,13 @@ const config = buildConfig({
         defaultStatus: 'draft',
         hideNoStatusColumn: false,
         fieldAccess:{
+          // <These fields are optional>
           update:() => true,
           create:() => false,
           read:() => false,
         },
         fieldAdmin: {
+          // <These fields are optional>
           hidden:true
           // Any admin props for a normal field in payload cms
         },
@@ -72,6 +74,6 @@ Upcoming Features / Ideas. Have a suggestion for the plugin? Feel free to open a
 - [x] Toggleable column for posts without a kanban status (Currently, documents lacking `kanbanStatus` aren't
       visible on the board)
 - [ ] Lazy loading of column contents when scrolling (Currently, board only shows `defaultLimit` amount of cards)
-- [ ] Permissions for changing statuses
+- [x] Validation for changing statuses
 - [ ] Allowed transitions between statuses
 - [ ] Integration with the draft/publish system of Payload (?)

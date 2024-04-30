@@ -7,8 +7,10 @@ import {
   sortAndFilterDocumentsForStatus,
   sortAndFilterDocumentsWithoutStatus,
 } from "../../utils/documents.util";
-
+import { toast } from "react-toastify";
 import "./styles.scss";
+import { PluginCollectionConfig } from "../..";
+import { useAuth } from "payload/components/utilities";
 
 interface BoardInterface {
   collection: CollectionConfig;
@@ -16,6 +18,7 @@ interface BoardInterface {
   hideNoStatusColumn?: boolean;
   documents: any[];
   dragEnabled: boolean;
+  config: PluginCollectionConfig;
   onDocumentkanbanStatusChange: (
     documentId: string,
     kanbanStatus: string,
@@ -31,7 +34,10 @@ const Board = (props: BoardInterface) => {
     onDocumentkanbanStatusChange,
     collection,
     dragEnabled,
+    config,
   } = props;
+
+  const { user } = useAuth();
   const [documents, setDocuments] = useState(initDocuments ?? []);
 
   useEffect(() => {
@@ -62,6 +68,10 @@ const Board = (props: BoardInterface) => {
   };
 
   const onDragEnd = (result: DropResult) => {
+    if (!dragEnabled) {
+      toast.error("You are not authorised to perform this action");
+      return;
+    }
     if (!result.destination) {
       return;
     }
@@ -76,53 +86,105 @@ const Board = (props: BoardInterface) => {
       return;
     }
 
+    const statuses = config.statuses;
+
+    const destinationStatusConfig = statuses.filter(
+      (status) => status.value === destination.droppableId
+    );
+
     const documentId = result.draggableId;
     const sourceStatus = source.droppableId;
     const destinationStatus = destination.droppableId;
     const destinationIndex = destination.index;
+
     const destinationStatusGroup = sortAndFilterDocumentsForStatus(
       documents,
       destinationStatus
     );
 
-    const minOrderRank =
-      documents[0]?.kanbanOrderRank ?? LexoRank.min().toString();
-    const maxOrderRank =
-      documents[documents.length - 1].kanbanOrderRank ??
-      LexoRank.max().toString();
+    const cardData = documents.filter((_doc) => _doc.id === documentId);
+    try {
+      if (
+        destinationStatusConfig &&
+        Array.isArray(destinationStatusConfig) &&
+        destinationStatusConfig.length > 0 &&
+        "dropValidation" in destinationStatusConfig[0]
+      ) {
+        const { dropValidation } = destinationStatusConfig[0];
+        if (dropValidation) {
+          var { dropAble, message = null } = dropValidation({
+            data: cardData.length > 0 ? cardData[0] : {},
+            user,
+          });
 
-    const updatedDocumentIndex = documents.findIndex(
-      (_doc) => _doc.id === result.draggableId
-    );
+          if (!dropAble) {
+            if (message && message != null) {
+              toast.error(message);
+            }
+            return;
+          }
+        }
+      }
 
-    //first in entire collection when added to empty group.
-    if (destinationStatusGroup.length === 0 && updatedDocumentIndex === 0) {
-      return updateDocument(
-        documentId,
-        destinationStatus,
-        LexoRank.min().toString()
+      const minOrderRank =
+        documents[0]?.kanbanOrderRank ?? LexoRank.min().toString();
+      const maxOrderRank =
+        documents[documents.length - 1].kanbanOrderRank ??
+        LexoRank.max().toString();
+
+      const updatedDocumentIndex = documents.findIndex(
+        (_doc) => _doc.id === result.draggableId
       );
-    }
 
-    //first in list on empty group.
-    if (destinationStatusGroup.length === 0 && destinationIndex === 0) {
-      return updateDocument(
-        documentId,
-        destinationStatus,
-        LexoRank.min().genNext().toString()
-      );
-    }
+      //first in entire collection when added to empty group.
+      if (destinationStatusGroup.length === 0 && updatedDocumentIndex === 0) {
+        if (message && message != null) {
+          toast.success(message);
+        }
+        return updateDocument(
+          documentId,
+          destinationStatus,
+          LexoRank.min().toString()
+        );
+      }
 
-    //first in list
-    if (destinationIndex === 0) {
-      const previousFirstDoc = [...destinationStatusGroup].shift();
+      //first in list on empty group.
+      if (destinationStatusGroup.length === 0 && destinationIndex === 0) {
+        if (message && message != null) {
+          toast.success(message);
+        }
+        return updateDocument(
+          documentId,
+          destinationStatus,
+          LexoRank.min().genNext().toString()
+        );
+      }
 
-      // if the value has not been set, set a default value.
-      if (!(typeof previousFirstDoc.kanbanOrderRank === "string")) {
-        const updatedOrderRank = LexoRank.parse(minOrderRank)
-          .between(LexoRank.max())
-          .toString();
+      //first in list
+      if (destinationIndex === 0) {
+        const previousFirstDoc = [...destinationStatusGroup].shift();
 
+        // if the value has not been set, set a default value.
+        if (!(typeof previousFirstDoc.kanbanOrderRank === "string")) {
+          const updatedOrderRank = LexoRank.parse(minOrderRank)
+            .between(LexoRank.max())
+            .toString();
+          if (message && message != null) {
+            toast.success(message);
+          }
+          return updateDocument(
+            documentId,
+            destinationStatus,
+            updatedOrderRank.toString()
+          );
+        }
+
+        const updatedOrderRank = LexoRank.parse(
+          previousFirstDoc.kanbanOrderRank
+        ).genPrev();
+        if (message && message != null) {
+          toast.success(message);
+        }
         return updateDocument(
           documentId,
           destinationStatus,
@@ -130,31 +192,36 @@ const Board = (props: BoardInterface) => {
         );
       }
 
-      const updatedOrderRank = LexoRank.parse(
-        previousFirstDoc.kanbanOrderRank
-      ).genPrev();
-      return updateDocument(
-        documentId,
-        destinationStatus,
-        updatedOrderRank.toString()
-      );
-    }
+      //last in the list
+      if (
+        (sourceStatus === destinationStatus &&
+          destinationIndex + 1 === destinationStatusGroup.length) ||
+        (sourceStatus !== destinationStatus &&
+          destinationIndex === destinationStatusGroup.length)
+      ) {
+        const previousLastDoc = [...destinationStatusGroup].pop();
 
-    //last in the list
-    if (
-      (sourceStatus === destinationStatus &&
-        destinationIndex + 1 === destinationStatusGroup.length) ||
-      (sourceStatus !== destinationStatus &&
-        destinationIndex === destinationStatusGroup.length)
-    ) {
-      const previousLastDoc = [...destinationStatusGroup].pop();
+        // if the value has not been set, set a default value.
+        if (!(typeof previousLastDoc.kanbanOrderRank === "string")) {
+          const updatedOrderRank = LexoRank.parse(maxOrderRank)
+            .between(LexoRank.min())
+            .toString();
+          if (message && message != null) {
+            toast.success(message);
+          }
+          return updateDocument(
+            documentId,
+            destinationStatus,
+            updatedOrderRank.toString()
+          );
+        }
 
-      // if the value has not been set, set a default value.
-      if (!(typeof previousLastDoc.kanbanOrderRank === "string")) {
-        const updatedOrderRank = LexoRank.parse(maxOrderRank)
-          .between(LexoRank.min())
-          .toString();
-
+        const updatedOrderRank = LexoRank.parse(
+          previousLastDoc.kanbanOrderRank
+        ).genNext();
+        if (message && message != null) {
+          toast.success(message);
+        }
         return updateDocument(
           documentId,
           destinationStatus,
@@ -162,34 +229,34 @@ const Board = (props: BoardInterface) => {
         );
       }
 
-      const updatedOrderRank = LexoRank.parse(
-        previousLastDoc.kanbanOrderRank
-      ).genNext();
+      //between 2 documents
+      let documentBefore = destinationStatusGroup[destinationIndex - 1];
+      let documentAfter = destinationStatusGroup[destinationIndex];
+
+      // within the same list re-ordering to the bottom, switch the document before and after.
+      if (
+        sourceStatus === destinationStatus &&
+        source.index < destinationIndex
+      ) {
+        documentBefore = destinationStatusGroup[destinationIndex];
+        documentAfter = destinationStatusGroup[destinationIndex + 1];
+      }
+
+      const documentBeforeRank = LexoRank.parse(documentBefore.kanbanOrderRank);
+      const documentAfterRank = LexoRank.parse(documentAfter.kanbanOrderRank);
+
+      if (message && message != null) {
+        toast.success(message);
+      }
+
       return updateDocument(
         documentId,
         destinationStatus,
-        updatedOrderRank.toString()
+        documentBeforeRank.between(documentAfterRank).toString()
       );
+    } catch (error) {
+      toast.error("something went wrong");
     }
-
-    //between 2 documents
-    let documentBefore = destinationStatusGroup[destinationIndex - 1];
-    let documentAfter = destinationStatusGroup[destinationIndex];
-
-    // within the same list re-ordering to the bottom, switch the document before and after.
-    if (sourceStatus === destinationStatus && source.index < destinationIndex) {
-      documentBefore = destinationStatusGroup[destinationIndex];
-      documentAfter = destinationStatusGroup[destinationIndex + 1];
-    }
-
-    const documentBeforeRank = LexoRank.parse(documentBefore.kanbanOrderRank);
-    const documentAfterRank = LexoRank.parse(documentAfter.kanbanOrderRank);
-
-    return updateDocument(
-      documentId,
-      destinationStatus,
-      documentBeforeRank.between(documentAfterRank).toString()
-    );
   };
 
   return (

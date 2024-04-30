@@ -4,7 +4,17 @@ import generateOrderRank from "./hooks/generateOrderRank";
 import WorkflowView from "./components/WorkflowView/WorkflowView";
 
 export interface PluginCollectionConfig {
-  statuses: OptionObject[],
+  statuses: {
+    label: Record<string, string> | string;
+    value: string;
+    dropValidation?: ({
+      data,
+      user
+    }) => {
+      dropAble: boolean,
+      message?: string
+    } 
+  }[],
   defaultStatus?: string;
   hideNoStatusColumn?: boolean;
   fieldAccess? : FieldBase["access"]
@@ -21,6 +31,12 @@ const extendCollectionConfig = (
   }
 
   const collectionPluginConfig = pluginConfig[collection.slug];
+  const statuses : OptionObject[] = collectionPluginConfig.statuses.map((status) => {
+    return {
+      label: status.label,
+      value: status.value
+    }
+  });
 
   return {
     ...collection,
@@ -37,7 +53,7 @@ const extendCollectionConfig = (
         name: 'kanbanStatus',
         label: 'Kanban status',
         type: "select",
-        options: collectionPluginConfig.statuses,
+        options: statuses,
         defaultValue: collectionPluginConfig.defaultStatus,
         admin: {
           ...collectionPluginConfig?.fieldAdmin,

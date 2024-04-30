@@ -23,6 +23,7 @@ import {
 import { ListControls } from "payload/dist/admin/components/elements/ListControls";
 import DefaultList from "payload/dist/admin/components/views/collections/List/Default";
 import { useLocation } from "react-router";
+import { ToastContainer, toast, Slide } from "react-toastify";
 
 const baseClass = "scrumboard";
 
@@ -83,62 +84,66 @@ const WorkflowView = (config: PluginCollectionConfig) => (props: ListProps) => {
     });
   };
 
-  if (!hasReadAccess || !isFromSamePage) {
-    return <DefaultList {...props} />;
-  } else {
-    if (!showingWorkflow) {
-      return (
-        <DefaultList
-          customHeader={
-            <WorkflowViewHeader
-              hasCreatePermission={hasCreatePermission}
-              newDocumentURL={newDocumentURL}
-              pluralLabel={pluralLabel}
-              isShowingWorkflow={showingWorkflow}
-              onWorkflowViewSwitch={() => setShowingWorkflow(true)}
+  return (
+    <>
+      <Meta title={getTranslation(pluralLabel, i18n)} />
+      <SelectionProvider docs={data.docs} totalDocs={data.totalDocs}>
+        <Gutter className={`${baseClass}__wrap`}>
+          {!hasReadAccess || !isFromSamePage ? (
+            <DefaultList {...props} />
+          ) : !showingWorkflow ? (
+            <DefaultList
+              customHeader={
+                <WorkflowViewHeader
+                  hasCreatePermission={hasCreatePermission}
+                  newDocumentURL={newDocumentURL}
+                  pluralLabel={pluralLabel}
+                  isShowingWorkflow={showingWorkflow}
+                  onWorkflowViewSwitch={() => setShowingWorkflow(true)}
+                />
+              }
+              {...props}
             />
-          }
-          {...props}
-        />
-      );
-    }
+          ) : (
+            <>
+              <WorkflowViewHeader
+                hasCreatePermission={hasCreatePermission}
+                newDocumentURL={newDocumentURL}
+                pluralLabel={pluralLabel}
+                isShowingWorkflow={showingWorkflow}
+                onWorkflowViewSwitch={() => setShowingWorkflow(false)}
+              />
 
-    return (
-      <div>
-        <Meta title={getTranslation(pluralLabel, i18n)} />
-        <SelectionProvider docs={data.docs} totalDocs={data.totalDocs}>
-          <Gutter className={`${baseClass}__wrap`}>
-            <WorkflowViewHeader
-              hasCreatePermission={hasCreatePermission}
-              newDocumentURL={newDocumentURL}
-              pluralLabel={pluralLabel}
-              isShowingWorkflow={showingWorkflow}
-              onWorkflowViewSwitch={() => setShowingWorkflow(false)}
-            />
+              <ListControls
+                collection={collection}
+                handleSearchChange={handleSearchChange}
+                handleSortChange={handleSortChange}
+                handleWhereChange={handleWhereChange}
+                modifySearchQuery={modifySearchParams}
+                resetParams={resetParams}
+                titleField={titleField}
+              />
 
-            <ListControls
-              collection={collection}
-              handleSearchChange={handleSearchChange}
-              handleSortChange={handleSortChange}
-              handleWhereChange={handleWhereChange}
-              modifySearchQuery={modifySearchParams}
-              resetParams={resetParams}
-              titleField={titleField}
-            />
-
-            <Board
-              collection={collection}
-              documents={data.docs}
-              hideNoStatusColumn={config.hideNoStatusColumn}
-              statusDefinition={statusDefinition}
-              onDocumentkanbanStatusChange={handleDocumentkanbanStatusChange}
-              dragEnabled={dragEnabled}
-            />
-          </Gutter>
-        </SelectionProvider>
-      </div>
-    );
-  }
+              <Board
+                collection={collection}
+                documents={data.docs}
+                hideNoStatusColumn={config.hideNoStatusColumn}
+                statusDefinition={statusDefinition}
+                onDocumentkanbanStatusChange={handleDocumentkanbanStatusChange}
+                dragEnabled={dragEnabled}
+                config={config}
+              />
+            </>
+          )}
+        </Gutter>
+      </SelectionProvider>
+      <ToastContainer
+        icon={false}
+        position="bottom-center"
+        transition={Slide}
+      />
+    </>
+  );
 };
 
 export default WorkflowView;
