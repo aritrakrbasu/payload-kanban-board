@@ -11,10 +11,18 @@ import "./styles.scss";
 import { getTranslation } from "payload/utilities";
 import { requests } from "payload/dist/admin/api";
 import { PluginCollectionConfig } from "../../index";
-import { useAuth, useConfig } from "payload/components/utilities";
-import { SelectionProvider } from "payload/dist/admin/components/views/collections/List/SelectionProvider";
+import {
+  useAuth,
+  useConfig,
+  useDocumentInfo,
+} from "payload/components/utilities";
+import {
+  SelectionProvider,
+  useSelection,
+} from "payload/dist/admin/components/views/collections/List/SelectionProvider";
 import { ListControls } from "payload/dist/admin/components/elements/ListControls";
 import DefaultList from "payload/dist/admin/components/views/collections/List/Default";
+import { useLocation } from "react-router";
 
 const baseClass = "scrumboard";
 
@@ -39,8 +47,13 @@ const WorkflowView = (config: PluginCollectionConfig) => (props: ListProps) => {
   } = props;
 
   const { permissions } = useAuth();
-  const dragEnabled = permissions.collections[collectionSlug]?.update
-    .permission as boolean;
+  const location = useLocation();
+  const isFromSamePage = location.pathname.includes(collectionSlug);
+  const dragEnabled = permissions.collections[collectionSlug]?.fields
+    ?.kanbanStatus?.update.permission as boolean;
+
+  const hasReadAccess = permissions.collections[collectionSlug]?.fields
+    ?.kanbanStatus?.read.permission as boolean;
 
   const { i18n } = useTranslation("general");
   const {
@@ -70,58 +83,62 @@ const WorkflowView = (config: PluginCollectionConfig) => (props: ListProps) => {
     });
   };
 
-  if (!showingWorkflow) {
+  if (!hasReadAccess || !isFromSamePage) {
+    return <DefaultList {...props} />;
+  } else {
+    if (!showingWorkflow) {
+      return (
+        <DefaultList
+          customHeader={
+            <WorkflowViewHeader
+              hasCreatePermission={hasCreatePermission}
+              newDocumentURL={newDocumentURL}
+              pluralLabel={pluralLabel}
+              isShowingWorkflow={showingWorkflow}
+              onWorkflowViewSwitch={() => setShowingWorkflow(true)}
+            />
+          }
+          {...props}
+        />
+      );
+    }
+
     return (
-      <DefaultList
-        customHeader={
-          <WorkflowViewHeader
-            hasCreatePermission={hasCreatePermission}
-            newDocumentURL={newDocumentURL}
-            pluralLabel={pluralLabel}
-            isShowingWorkflow={showingWorkflow}
-            onWorkflowViewSwitch={() => setShowingWorkflow(true)}
-          />
-        }
-        {...props}
-      />
+      <div>
+        <Meta title={getTranslation(pluralLabel, i18n)} />
+        <SelectionProvider docs={data.docs} totalDocs={data.totalDocs}>
+          <Gutter className={`${baseClass}__wrap`}>
+            <WorkflowViewHeader
+              hasCreatePermission={hasCreatePermission}
+              newDocumentURL={newDocumentURL}
+              pluralLabel={pluralLabel}
+              isShowingWorkflow={showingWorkflow}
+              onWorkflowViewSwitch={() => setShowingWorkflow(false)}
+            />
+
+            <ListControls
+              collection={collection}
+              handleSearchChange={handleSearchChange}
+              handleSortChange={handleSortChange}
+              handleWhereChange={handleWhereChange}
+              modifySearchQuery={modifySearchParams}
+              resetParams={resetParams}
+              titleField={titleField}
+            />
+
+            <Board
+              collection={collection}
+              documents={data.docs}
+              hideNoStatusColumn={config.hideNoStatusColumn}
+              statusDefinition={statusDefinition}
+              onDocumentkanbanStatusChange={handleDocumentkanbanStatusChange}
+              dragEnabled={dragEnabled}
+            />
+          </Gutter>
+        </SelectionProvider>
+      </div>
     );
   }
-
-  return (
-    <div>
-      <Meta title={getTranslation(pluralLabel, i18n)} />
-      <SelectionProvider docs={data.docs} totalDocs={data.totalDocs}>
-        <Gutter className={`${baseClass}__wrap`}>
-          <WorkflowViewHeader
-            hasCreatePermission={hasCreatePermission}
-            newDocumentURL={newDocumentURL}
-            pluralLabel={pluralLabel}
-            isShowingWorkflow={showingWorkflow}
-            onWorkflowViewSwitch={() => setShowingWorkflow(false)}
-          />
-
-          <ListControls
-            collection={collection}
-            handleSearchChange={handleSearchChange}
-            handleSortChange={handleSortChange}
-            handleWhereChange={handleWhereChange}
-            modifySearchQuery={modifySearchParams}
-            resetParams={resetParams}
-            titleField={titleField}
-          />
-
-          <Board
-            collection={collection}
-            documents={data.docs}
-            hideNoStatusColumn={config.hideNoStatusColumn}
-            statusDefinition={statusDefinition}
-            onDocumentkanbanStatusChange={handleDocumentkanbanStatusChange}
-            dragEnabled={dragEnabled}
-          />
-        </Gutter>
-      </SelectionProvider>
-    </div>
-  );
 };
 
 export default WorkflowView;

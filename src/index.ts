@@ -1,5 +1,5 @@
 import { Config, Plugin } from "payload/config";
-import { CollectionConfig, FieldBase, OptionObject } from "payload/types";
+import { CollectionConfig,  FieldBase, OptionObject } from "payload/types";
 import generateOrderRank from "./hooks/generateOrderRank";
 import WorkflowView from "./components/WorkflowView/WorkflowView";
 
@@ -7,8 +7,9 @@ export interface PluginCollectionConfig {
   statuses: OptionObject[],
   defaultStatus?: string;
   hideNoStatusColumn?: boolean;
-  fieldAccess : FieldBase["access"]
-  fieldAdmin : FieldBase["admin"],
+  fieldAccess? : FieldBase["access"]
+  fieldAdmin? : FieldBase["admin"],
+  fieldHooks? : FieldBase["hooks"]
 }
 
 const extendCollectionConfig = (
@@ -34,17 +35,16 @@ const extendCollectionConfig = (
       ...collection.fields,
       {
         name: 'kanbanStatus',
-        label: 'Workflow status',
+        label: 'Kanban status',
         type: "select",
         options: collectionPluginConfig.statuses,
         defaultValue: collectionPluginConfig.defaultStatus,
         admin: {
-          ...collectionPluginConfig.fieldAdmin,
+          ...collectionPluginConfig?.fieldAdmin,
           position: 'sidebar'
         },
-        access:{
-          ...collectionPluginConfig.fieldAccess
-        }
+        access:collectionPluginConfig?.fieldAccess||{},
+        hooks:collectionPluginConfig?.fieldHooks || {}
       },
       {
         name: 'kanbanOrderRank',
@@ -71,7 +71,7 @@ const extendCollectionConfig = (
   }
 });
 
-export const payloadWorkflow = (pluginConfig: Record<string, PluginCollectionConfig>): Plugin =>
+export const payloadKanbanBoard = (pluginConfig: Record<string, PluginCollectionConfig>): Plugin =>
   (incomingConfig: Config): Config => {
 
     return {

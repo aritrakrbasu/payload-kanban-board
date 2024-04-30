@@ -1,4 +1,4 @@
-# Payload workflow plugin
+# Payload kanban plugin
 
 > **Note**
 > This plugin is currently under active development and still in an early stage.
@@ -7,27 +7,27 @@
 <picture>
   <source media="(prefers-color-scheme: dark)" src="./preview-dark.png" />
   <source media="(prefers-color-scheme: light)" src="./preview-light.png" />
-  <img alt="Shows an image illustrating the payload-workflow plugin" src="./preview-dark.png">
+  <img alt="Shows an image illustrating the payload-kanban-board plugin" src="./preview-dark.png">
 </picture>
 
 ## Installation
 
-The most recent version of payload-workflow currently only supports Payload 2.0 and up.
-For older payload versions, please use `payload-workflow@0.2.0`
+The most recent version of payload-kanban-board currently only supports Payload 2.0 and up.
 
 ```shell
-$ yarn add payload-workflow
+$ yarn add payload-kanban-board
+$ npm i payload-kanban-board
 ```
 
 ## Basic usage
 
 ```typescript
-import { payloadWorkflow } from 'payload-workflow';
+import { payloadKanbanBoard } from 'payload-kanban-board';
 
 const config = buildConfig({
   collections: [ ... ],
   plugins: [
-    payloadWorkflow({
+    payloadKanbanBoard({
       'my-collection-slug': {
         statuses: [
           {value: 'draft', label: 'Draft'},
@@ -55,10 +55,10 @@ const config = buildConfig({
 
 ## Differences with the draft/publish system of Payload.
 
-The workflow plugin introduces a new field called `kanbanStatus`. This field does not interact with the draft/publish
+The kanban plugin introduces a new field called `kanbanStatus`. This field does not interact with the draft/publish
 system of Payload.
 
-You can "integrate" the workflow status with the draft/publish system of Payload yourself by
+You can "integrate" the kanban status with the draft/publish system of Payload yourself by
 using [Payloads hooks](https://payloadcms.com/docs/hooks/overview).
 
 For example: Automatically publish the document when the `kanbanStatus` has been changed to `published`.
@@ -69,7 +69,7 @@ Upcoming Features / Ideas. Have a suggestion for the plugin? Feel free to open a
 - [x] Payload 2.0 support
 - [ ] Customize card properties (currently displays `title` and `createdAt`)
 - [ ] Edit relationships directly from the card (e.g., assigning users to a document)
-- [x] Toggleable column for posts without a workflow status (Currently, documents lacking `kanbanStatus` aren't
+- [x] Toggleable column for posts without a kanban status (Currently, documents lacking `kanbanStatus` aren't
       visible on the board)
 - [ ] Lazy loading of column contents when scrolling (Currently, board only shows `defaultLimit` amount of cards)
 - [ ] Permissions for changing statuses

@@ -1,13 +1,13 @@
 @import "payload/scss";
 
-.workflow-view-header {
+.kanban-view-header {
   width: 100%;
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
   flex-wrap: wrap;
 
-  &.is-workflow-view {
+  &.is-kanban-view {
     margin-bottom: $baseline;
   }
 

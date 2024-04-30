@@ -213,7 +213,7 @@ const Board = (props: BoardInterface) => {
                 />
               )}
 
-              {statusDefinition.options.map((status: any) => (
+              {statusDefinition?.options.map((status: any) => (
                 <BoardColumn
                   collection={collection}
                   key={status.value}

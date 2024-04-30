@@ -1,7 +1,7 @@
 {
-  "name": "payload-kanban",
+  "name": "payload-kanban-board",
   "description": "A kanban board plugin for Payload CMS",
-  "version": "1.0",
+  "version": "1.0.8",
   "keywords": [
     "payload",
     "payload-plugin",
@@ -10,7 +10,7 @@
     "board",
     "plugin",
     "react",
-    "workflow"
+    "kanban"
   ],
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

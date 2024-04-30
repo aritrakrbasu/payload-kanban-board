@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import React from "react";
 import "./styles.scss";
 
-const baseClass = "workflow-view-header";
+const baseClass = "kanban-view-header";
 
 interface WorkflowViewHeaderProps {
   pluralLabel: Record<string, string> | string;
@@ -26,7 +26,7 @@ const WorkflowViewHeader = (props: WorkflowViewHeaderProps) => {
 
   return (
     <header
-      className={`${baseClass} ${isShowingWorkflow ? "is-workflow-view" : ""}`}
+      className={`${baseClass} ${isShowingWorkflow ? "is-kanban-view" : ""}`}
     >
       <div>
         <h1>{getTranslation(pluralLabel, i18n)}</h1>
@@ -41,7 +41,7 @@ const WorkflowViewHeader = (props: WorkflowViewHeaderProps) => {
         onClick={() => onWorkflowViewSwitch()}
       >
         {isShowingWorkflow && "Switch to table view"}
-        {!isShowingWorkflow && "Switch to workflow view"}
+        {!isShowingWorkflow && "Switch to kanban view"}
       </Button>
     </header>
   );
