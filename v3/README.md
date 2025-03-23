@@ -35,6 +35,46 @@ const config = buildConfig({
   collections: [ ... ],
   plugins: [
     payloadKanbanBoard({
+      collections: {
+        posts: {
+          enabled: true,
+          config: {
+            statuses: [
+              {
+                value: 'draft',
+                label: 'Draft',
+              },
+              { value: 'in-progress', label: 'In Progress' },
+              {
+                value: 'ready-for-review',
+                label: 'Ready for review',
+                dropValidation: ({ user, data }) => {
+                  return { dropAble: false }
+                  //<dropValidation key is optional>
+                },
+              },
+              { value: 'published', label: 'Published' },
+            ],
+
+            defaultStatus: 'todo',
+            hideNoStatusColumn: true,
+          },
+        },
+      },
+    })
+  ],
+});
+```
+
+To use it on payload version < 3.0
+
+```typescript
+import { payloadKanbanBoard } from 'payload-kanban-board';
+
+const config = buildConfig({
+  collections: [ ... ],
+  plugins: [
+    payloadKanbanBoard({
       'my-collection-slug': {
         statuses: [
           {value: 'draft', label: 'Draft', dropValidation:({user,data})=>return true}, //<dropValidation key is optional>
@@ -76,6 +116,7 @@ For example: Automatically publish the document when the `kanbanStatus` has been
 Upcoming Features / Ideas. Have a suggestion for the plugin? Feel free to open an issue or contribute!
 
 - [x] Payload 2.0 support
+- [x] Payload 3.0 support
 - [ ] Customize card properties (currently displays `title` and `createdAt`)
 - [ ] Edit relationships directly from the card (e.g., assigning users to a document)
 - [x] Toggleable column for posts without a kanban status (Currently, documents lacking `kanbanStatus` aren't
