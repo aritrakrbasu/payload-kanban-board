@@ -1,13 +1,13 @@
-import { buildConfig } from 'payload/config';
+import { webpackBundler } from "@payloadcms/bundler-webpack";
+import { mongooseAdapter } from "@payloadcms/db-mongodb";
+import { slateEditor } from "@payloadcms/richtext-slate";
 import path from 'path';
+import { buildConfig } from 'payload/config';
 import Categories from './collections/Categories';
+import Media from './collections/Media';
 import Posts from './collections/Posts';
 import Tags from './collections/Tags';
 import Users from './collections/Users';
-import Media from './collections/Media';
-import { mongooseAdapter } from "@payloadcms/db-mongodb";
-import { slateEditor } from "@payloadcms/richtext-slate";
-import { webpackBundler } from "@payloadcms/bundler-webpack";
 
 import { payloadKanbanBoard } from "../../src/index";
 
